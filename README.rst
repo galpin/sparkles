@@ -42,7 +42,7 @@ a SPARQL endpoint), ``SPClass`` (a representation of an RDF type) and
 ``SPInstance`` (a resource that is of an RDF type). For instance,
 consider the following example::
 
-    var store = [[SPTripleStore alloc] initWithEndPoint:@"http://dbpedia.org/sparql"],
+    var store = [SPEndPoint endPointWithString:@"http://dbpedia.org/sparql"],
         classAthlete = [store classForName:@"dbo:Athlete"];
 
 The variable ``classAthlete`` now represents the RDF type
