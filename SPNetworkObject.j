@@ -99,8 +99,6 @@ SPNetworkObjectConnectionTagDefault = 1;
 	return;
     }
 
-    CPLog(aResponse);
-
     if(aConnection.postTarget._invalidated)
     {
 	aConnection.postTarget._invalidated = NO;
