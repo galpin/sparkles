@@ -191,7 +191,7 @@ SPCollectionResultConnectionTagCount = 10;
     if([_preloadedProperties count] > 0)
 	[self buildPreloadedPropertiesQuery];
 
-    var countQuery = [SPQueryBuilder select:@"COUNT(?g) as ?count"];
+    var countQuery = [SPQueryBuilder select:@"(COUNT(?g) as ?count)"];
     [countQuery where:SPNamed(@"?g", _query._defaultGraph)];
 
     return countQuery;
