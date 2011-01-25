@@ -79,7 +79,7 @@ SPNetworkObjectConnectionTagDefault = 1;
     if([aResponse respondsToSelector:@selector(statusCode)] && [aResponse statusCode] > 200)
     {
 	CPLog.info(@"SPARQL request failed with status code: %d for tag %d",
-		   [aResponse statusCode], connection.postTag);
+		   [aResponse statusCode], aConnection.postTag);
 	aConnection.postTarget._invalidated = YES;
     }
 }
