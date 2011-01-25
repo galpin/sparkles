@@ -37,7 +37,6 @@
     [request setHTTPMethod:@"POST"];
     [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
     [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
-    [request setValue:[body length] forHTTPHeaderField:@"Content-Length"];
     [request setHTTPBody:body];
 
     return request;
