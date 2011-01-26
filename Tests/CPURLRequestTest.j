@@ -36,8 +36,6 @@
     [self assert:@"application/x-www-form-urlencoded"
           equals:[[request allHTTPHeaderFields] objectForKey:@"Content-Type"]];
     [self assert:body equals:[request HTTPBody]];
-    [self assert:[body length]
-          equals:[[request allHTTPHeaderFields] objectForKey:@"Content-Length"]];
     [self assert:@"application/json"
           equals:[[request allHTTPHeaderFields] objectForKey:@"Accept"]];
 }
