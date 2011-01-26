@@ -29,7 +29,7 @@
     var expectedSPARQL = "" +
 	"PREFIX dbo: <http://dbpedia.org/ontology/>\n" +
 	"SELECT\n" +
-	"COUNT(?g) as ?count\n" +
+	"(COUNT(?g) as ?count)\n" +
         "WHERE\n" +
 	"{\n" +
 	"GRAPH\n" +
