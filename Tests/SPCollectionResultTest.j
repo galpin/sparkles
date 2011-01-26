@@ -275,7 +275,6 @@
 	  equals:@"http://dbpedia.org/resource/France"];
     [self assertTrue:[[bob property:"dbo:birthPlace"] isKindOfClass:[SPLiteralURI class]]];
 }
-*/
 
 - (void)testSetPreloadedPropertyMultipleTuple
 {
