@@ -49,6 +49,7 @@ SPCollectionResultConnectionTagCount = 10;
     CPArray _instances;
     CPDictionary _instancesDictionary;
     CPArray _preloadedProperties;
+    int _count;
 }
 
 /*!
@@ -113,6 +114,7 @@ SPCollectionResultConnectionTagCount = 10;
 
 @implementation SPCollectionResult (SPNetworkObject)
 
+
 // Override loadIfNeeded so we can inject the count first
 - (void)loadIfNeeded
 {
@@ -135,7 +137,14 @@ SPCollectionResultConnectionTagCount = 10;
 
     if(aTag == SPCollectionResultConnectionTagCount)
     {
-	var count = data.results.bindings[0].count.value;
+        // No results at all, fire the final didLoad notification
+        if(data.results.bindings.length < 1)
+        {
+            [super didLoad:SPNetworkObjectConnectionTagDefault];
+            return;
+        }
+
+	_count = parseInt(data.results.bindings[0].count.value);
 	// TODO implement chunking if the count exceeds the SPARQL soft limit?
     }
     else
@@ -216,4 +225,3 @@ SPCollectionResultConnectionTagCount = 10;
 }
 
 @end
-

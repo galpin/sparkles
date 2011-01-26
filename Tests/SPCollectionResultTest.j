@@ -72,6 +72,46 @@
 	  equals:[[[collectionResult all] objectAtIndex:1] URI]];
 }
 
+- (void)testParseCountData
+{
+    var result = {
+        "head": { "vars": [ "count" ] },
+        "results": {
+            "bindings": [{
+		"count": {
+		    "type": "typed-literal",
+		    "value": "12345",
+		    "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+		}
+	    }]
+        }
+    };
+
+    var endPoint = [SPEndPoint endPointWithString:@"http://example.org/sparql"];
+    var people = [endPoint classForName:@"ex:Person"];
+    var collectionResult = [people all];
+    [collectionResult parseData:result tag:SPCollectionResultConnectionTagCount];
+
+    [self assert:12345 equals:collectionResult._count];
+}
+
+- (void)testParseEmptyCountData
+{
+    var result = {
+        "head": { "vars": [ "count" ] },
+        "results": {
+            "bindings": []
+        }
+    };
+
+    var endPoint = [SPEndPoint endPointWithString:@"http://example.org/sparql"];
+    var people = [endPoint classForName:@"ex:Person"];
+    var collectionResult = [people all];
+    [collectionResult parseData:result tag:SPCollectionResultConnectionTagCount];
+
+    [self assert:nil equals:collectionResult._count];
+}
+
 - (void)testParseDataMissingVars
 {
     var result = {
@@ -151,6 +191,23 @@
 	  equals:[[collectionResult all] count]];
 }
 
+- (void)testEmptyCollection
+{
+   var result = {
+	"head": { "vars": [ "uri" ] },
+	"results": {
+	    "bindings": [
+             ]
+	}
+    };
+
+    var endPoint = [SPEndPoint endPointWithString:@"http://example.org/sparql"];
+    var people = [endPoint classForName:@"ex:Person"];
+    var collectionResult = [people all];
+    [collectionResult parseData:result tag:0];
+
+    [self assert:0 equals:[[collectionResult all] count]];
+}
 
 - (void)testSetPreloadedPropertySingleTuple
 {
