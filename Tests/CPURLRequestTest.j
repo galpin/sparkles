@@ -29,13 +29,13 @@
     var sparql = @"SELECT * WHERE { ?s ?p ?o. }";
     var endPoint = [SPEndPoint endPointWithString:@"http://example.org/sparql"];
     var request = [CPURLRequest requestWithURL:[endPoint URL] SPARQL:sparql];
-    var body = [CPString stringWithFormat:@"query=%@", encodeURIComponent(sparql)];
 
-    [self assert:[endPoint URL] equals:[request URL]];
-    [self assert:@"POST" equals:[request HTTPMethod]];
+    [self assert:[CPString stringWithFormat:@"http://example.org/sparql?query=%@",
+                           encodeURIComponent(sparql)]
+          equals:[[request URL] description]];
+    [self assert:@"GET" equals:[request HTTPMethod]];
     [self assert:@"application/x-www-form-urlencoded"
           equals:[[request allHTTPHeaderFields] objectForKey:@"Content-Type"]];
-    [self assert:body equals:[request HTTPBody]];
     [self assert:@"application/json"
           equals:[[request allHTTPHeaderFields] objectForKey:@"Accept"]];
 }

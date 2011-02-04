@@ -31,13 +31,13 @@
 */
 + (id)requestWithURL:(CPURL)theURL SPARQL:(CPString)theSPARQL
 {
-    var request = [CPURLRequest requestWithURL:theURL];
-    var body = [CPString stringWithFormat:@"query=%@", encodeURIComponent(theSPARQL)];
+    var fullURL = [CPString stringWithFormat:@"%s?query=%@",
+                            [theURL description], encodeURIComponent(theSPARQL)],
+        request = [CPURLRequest requestWithURL:[CPURL URLWithString:fullURL]];
 
-    [request setHTTPMethod:@"POST"];
+    [request setHTTPMethod:@"GET"];
     [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
     [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
-    [request setHTTPBody:body];
 
     return request;
 }
