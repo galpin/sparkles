@@ -215,3 +215,53 @@
 }
 
 @end
+
+
+@implementation SPInstanceTest (CPKeyValueCoding)
+
+- (void)testValueForKey
+{
+    var instance = [[SPInstance alloc] initWithURI:@"http://example.org/foo"];
+
+    [instance setObject:[[SPPlainLiteral alloc] initWithValue:@"foo"] forProperty:@"foaf:name"];
+    [instance setObject:[[SPPlainLiteral alloc] initWithValue:@"something"] forProperty:@"dc:title"];
+
+    [self assert:@"foo" equals:[[instance valueForKey:@"foaf:name"] description]];
+    [self assert:@"something" equals:[[instance valueForKey:@"dc:title"] description]];
+    [self assert:nil equals:[instance valueForKey:@"nothing"]];
+    [self assert:2 equals:[instance valueForKey:@"@count"]];
+}
+
+- (void)testSetValueForKey
+{
+    var instance = [[SPInstance alloc] initWithURI:@"http://example.org/foo"];
+
+    [instance setValue:[[SPPlainLiteral alloc] initWithValue:@"foo"] forKey:@"foaf:name"];
+    [instance setValue:[[SPPlainLiteral alloc] initWithValue:@"something"] forKey:@"dc:title"];
+
+    [self assert:@"foo" equals:[[instance valueForKey:@"foaf:name"] description]];
+    [self assert:@"something" equals:[[instance valueForKey:@"dc:title"] description]];
+    [self assert:nil equals:[instance valueForKey:@"nothing"]];
+}
+
+- (void)testAllKeys
+{
+    var instance = [[SPInstance alloc] initWithURI:@"http://example.org/foo"];
+
+    [instance setObject:[[SPPlainLiteral alloc] initWithValue:@"foo"] forProperty:@"foaf:name"];
+    [instance setObject:[[SPPlainLiteral alloc] initWithValue:@"something"] forProperty:@"dc:title"];
+
+    [self assert:[@"http://xmlns.com/foaf/0.1/name", @"http://purl.org/dc/terms/title"] equals:[instance allKeys]];
+}
+
+- (void)testAllValues
+{
+    var instance = [[SPInstance alloc] initWithURI:@"http://example.org/foo"];
+
+    [instance setObject:[[SPPlainLiteral alloc] initWithValue:@"foo"] forProperty:@"foaf:name"];
+    [instance setObject:[[SPPlainLiteral alloc] initWithValue:@"something"] forProperty:@"dc:title"];
+
+    [self assert:2 equals:[[instance allValues] count]];
+}
+
+@end

@@ -263,3 +263,32 @@ SPInstanceDidLoad = @"SPInstanceDidLoad"
 }
 
 @end
+
+@implementation SPInstance (CPKeyValueCoding)
+
+// FIXME: Redundancy between valueForKey: and property:
+- (id)valueForKey:(CPString)aKey
+{
+    if(aKey == "@count")
+        return [_properties count];
+
+    return [self property:aKey];
+}
+
+// FIXME: Redundency between setValue:forKey: and setObject:forProperty:
+- (void)setValue:(id)aValue forKey:(CPString)aKey
+{
+    [self setObject:aValue forProperty:aKey];
+}
+
+- (CPArray)allKeys
+{
+    return [_properties allKeys];
+}
+
+- (CPArray)allValues
+{
+    return [_properties allValues];
+}
+
+@end
