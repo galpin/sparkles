@@ -34,6 +34,7 @@ SPInstanceDidLoad = @"SPInstanceDidLoad"
     SPClass _class;
     CPString _URI @accessors(property=URI, readonly);
     CPDictionary _properties @accessors(property=properties);
+    CPDictionary _inverse;
 }
 
 /*!
@@ -51,6 +52,7 @@ SPInstanceDidLoad = @"SPInstanceDidLoad"
 
         _URI = aURI;
 	_properties = [CPDictionary dictionary];
+        _inverse = [CPDictionary dictionary];
     }
 
     return self;
@@ -71,6 +73,21 @@ SPInstanceDidLoad = @"SPInstanceDidLoad"
 
 	_class = aClass;
     }
+
+    return self;
+}
+
+/*!
+    Initializes the instance with a specified resource URI and class
+    @param aURI the resource URI as a string
+    @param aEndPoint the endpoint for this resource
+*/
+- (id)initWithURI:(CPString)aURI endPoint:(SPEndPoint)aEndPoint
+{
+    self = [self initWithURI:aURI];
+
+    if(self)
+	[self setEndPoint:aEndPoint];
 
     return self;
 }
@@ -99,6 +116,56 @@ SPInstanceDidLoad = @"SPInstanceDidLoad"
 
     return [[SPInstance alloc] initWithURI:aJSON.uri.value forClass:aClass];
 }
+
+/*!
+    Initializes an instance for an unspecified class from a SPARQL JSON
+    resource in the form:
+
+    <pre>
+    {
+        "uri":
+	{
+	    "type": "uri",
+	    "value": "http://example.org/Alice/"
+	}
+    }
+    </pre>
+
+    @param aURI the resource URI as a string
+*/
++ (id)instanceWithJSON:(JSObject)aJSON
+{
+    if(!aJSON.uri)
+        throw "missing URI";
+
+    return [[SPInstance alloc] initWithURI:aJSON.uri.value];
+}
+
+/*!
+    Initializes an instance for a specified class from a SPARQL JSON
+    resource in the form:
+
+    <pre>
+    {
+        "uri":
+	{
+	    "type": "uri",
+	    "value": "http://example.org/Alice/"
+	}
+    }
+    </pre>
+
+    @param aURI the resource URI as a string
+    @param endPoint the endPoint for this resource
+*/
++ (id)instanceWithJSON:(JSObject)aJSON endPoint:(SPEndPoint)aEndPoint
+{
+    if(!aJSON.uri)
+        throw "missing URI";
+
+    return [[SPInstance alloc] initWithURI:aJSON.uri.value endPoint:aEndPoint];
+}
+
 
 /*!
     Sets the specified property of this instance to a given object.
@@ -135,6 +202,29 @@ SPInstanceDidLoad = @"SPInstanceDidLoad"
     return [_properties objectForKey:[[SPNamespaceManager sharedManager] expandQualifiedName:aURI]];
 }
 
+/*!
+    Gets a collection of results that are an inverse relationship for this property.
+    Results are cached - subsequent calls will be loaded. TEST
+    FIXME: documentation.
+*/
+- (SPCollectionResult)inverse:(CPString)aURI
+{
+    aURI = [[SPNamespaceManager sharedManager] expandQualifiedName:aURI];
+
+    if(![_inverse containsKey:aURI])
+    {
+        var query = [SPQueryBuilder select:@"?uri"];
+        [query where:SPTriple("?uri", [CPString stringWithFormat:@"<%@>", aURI],
+                              [CPString stringWithFormat:@"<%@>", _URI])];
+
+        var collection = [[SPCollectionResult alloc] initWithQuery:query
+                                                          endPoint:[self endPoint]];
+        [_inverse setObject:collection forKey:aURI];
+    }
+
+    return [_inverse objectForKey:aURI];
+}
+
 @end
 
 @implementation SPInstance (SPNetworkObject)
@@ -144,17 +234,20 @@ SPInstanceDidLoad = @"SPInstanceDidLoad"
     return _URI;
 }
 
-- (void)parseData:(JSObject)data
+- (void)parseData:(JSObject)aData tag:(int)aTag
 {
-    if(!data.head || !data.head.vars || !data.results || !data.results.bindings)
+    if(!aData.head || !aData.head.vars || !aData.results || !aData.results.bindings)
 	throw "Invalid JSON RDF response.";
 
-    if(data.head.vars.indexOf("object") < 0 || data.head.vars.indexOf("predicate") < 0)
+    if(aData.head.vars.indexOf("object") < 0 || aData.head.vars.indexOf("predicate") < 0)
 	throw "Invalid JSON RDF response: missing uri variable.";
 
-    for(var i = 0, count = data.results.bindings.length; i < count; i++)
+    // Clear all existing preloaded properties to avoid duplicates.
+    [_properties removeAllObjects];
+
+    for(var i = 0, count = aData.results.bindings.length; i < count; i++)
     {
-	var binding = data.results.bindings[i];
+	var binding = aData.results.bindings[i];
 
 	[self setObject:SPGetType(binding.object)
 	    forProperty:[SPGetType(binding.predicate) description]];

@@ -35,9 +35,41 @@
 
     var endPoint = [SPEndPoint endPointWithString:@"http://example.org/sparql"];
     var people = [endPoint classForName:@"ex:Person"];
+    var alice = [SPInstance instanceWithJSON:result];
+
+    [self assert:result.uri.value equals:[alice URI]];
+}
+
+- (void)testInstanceWithJSONAndClass
+{
+    var result = {
+        "uri": {
+            "type": "uri",
+            "value": "http://example.org/Alice/"
+        }
+    };
+
+    var endPoint = [SPEndPoint endPointWithString:@"http://example.org/sparql"];
+    var people = [endPoint classForName:@"ex:Person"];
     var alice = [SPInstance instanceWithJSON:result class:people];
 
     [self assert:result.uri.value equals:[alice URI]];
+}
+
+- (void)testInstanceWithJSONAndEndPoint
+{
+    var result = {
+        "uri": {
+            "type": "uri",
+            "value": "http://example.org/Alice/"
+        }
+    };
+
+    var endPoint = [SPEndPoint endPointWithString:@"http://example.org/sparql"];
+    var people = [endPoint classForName:@"ex:Person"];
+    var alice = [SPInstance instanceWithJSON:result endPoint:endPoint];
+
+    [self assert:[alice endPoint] equals:endPoint];
 }
 
 - (void)testParseData
@@ -64,7 +96,7 @@
     var store = [SPEndPoint endPointWithString:@"http://example.org/sparql"];
     var people = [store classForName:@"ex:Person"];
     var instance = [[SPInstance alloc] initWithURI:@"http://example.org/kmarx" forClass:people];
-    [instance parseData:result];
+    [instance parseData:result tag:0];
 
     [self assert:[SPPlainLiteral class]
 	  equals:[[instance property:@"http://www.w3.org/2000/01/rdf-schema#label"] class]];
@@ -108,7 +140,7 @@
     };
 
     var instance = [[SPInstance alloc] initWithURI:@"http://example.org/toaplan"];
-    [instance parseData:result];
+    [instance parseData:result tag:0];
 
     [self assertTrue:[[instance property:@"rdfs:comment"] isKindOfClass:[CPArray class]]];
     [self assert:@"Mechanic: Somebody set up us the bomb."
@@ -139,7 +171,7 @@
     };
 
     var instance = [[SPInstance alloc] initWithURI:@"http://example.org/foo"];
-    [self assertThrows:function(){ [instance parseData:result]; }];
+    [self assertThrows:function(){ [instance parseData:result tag:0]; }];
 }
 
 - (void)testSetObjectForProperty
@@ -153,6 +185,33 @@
 
     [instance setObject:[[SPPlainLiteral alloc] initWithValue:@"foo"] forProperty:@"foaf:name"];
     [self assertTrue:[[instance property:@"foaf:name"] isKindOfClass:[CPArray class]]];
+}
+
+- (void)testBuildInverseQuery
+{
+    var expectedSPARQL = "" +
+	"SELECT\n" +
+	"?uri\n" +
+        "WHERE\n" +
+	"{\n" +
+	"?uri <http://dbpedia.org/ontology/disambiguates> <http://dbpedia.org/resource/Lance_Armstrong> .\n" +
+        "}";
+
+    var theClass = [[SPClass alloc] initWithClassName:@"dbo:Athlete"],
+        instance = [[SPInstance alloc] initWithURI:@"http://dbpedia.org/resource/Lance_Armstrong"
+                                          forClass:theClass],
+        inverseProperty = @"dbo:disambiguates";
+
+    var builder = [SPQueryBuilder select:@"?uri"];
+    [builder where:SPTriple(@"?uri", inverseProperty, [instance URI])];
+
+    var resultCollection = [instance inverse:inverseProperty];
+    [self assert:expectedSPARQL equals:[resultCollection._query description]];
+
+    [[resultCollection all] addObject:@"Test"];
+
+    // Check the previous collecton was updated (cached).
+    [self assert:1 equals:[[instance inverse:inverseProperty] count]];
 }
 
 @end

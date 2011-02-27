@@ -50,6 +50,7 @@ SPCollectionResultConnectionTagCount = 10;
     CPDictionary _instancesDictionary;
     CPArray _preloadedProperties;
     int _count;
+    BOOL _isLoaded;
 }
 
 /*!
@@ -76,6 +77,33 @@ SPCollectionResultConnectionTagCount = 10;
 
     return self;
 }
+
+/*!
+    Initialize the class with a specified query and endpoint.
+    This class is unspecified.
+
+    @param aQuery the collection query as an instance of SPQueryBuilder
+    @param anEndPoint the endPoint to use
+*/
+- (id)initWithQuery:(SPQueryBuilder)aQuery endPoint:anEndPoint
+{
+    self = [super init];
+
+    if(self)
+    {
+        _query = aQuery;
+        _instances = [CPArray array];
+	_instancesDictionary = [CPDictionary dictionary];
+	_preloadedProperties = [CPArray array];
+
+	[self setWillLoadNotificationName:SPCollectionResultWillLoad];
+	[self setDidLoadNotificationName:SPCollectionResultDidLoad];
+	[self setEndPoint:anEndPoint];
+    }
+
+    return self;
+}
+
 
 /*!
     Preload the specified properties with the initial request for resources.
@@ -118,7 +146,10 @@ SPCollectionResultConnectionTagCount = 10;
 // Override loadIfNeeded so we can inject the count first
 - (void)loadIfNeeded
 {
-    [self executeQuery:[self buildCountQuery] tag:SPCollectionResultConnectionTagCount];
+    if(!_isLoaded)
+    {
+        [self executeQuery:[self buildCountQuery] tag:SPCollectionResultConnectionTagCount];
+    }
 }
 
 // Override didLoad: so we can start the proper query after the count
@@ -127,7 +158,10 @@ SPCollectionResultConnectionTagCount = 10;
     if(aTag == SPCollectionResultConnectionTagCount)
 	[super loadIfNeeded];
     else
+    {
 	[super didLoad:aTag];
+        _isLoaded = YES;
+    }
 }
 
 - (void)parseData:(JSObject)data tag:(int)aTag
@@ -155,7 +189,9 @@ SPCollectionResultConnectionTagCount = 10;
 	for(var i = 0, count = data.results.bindings.length; i < count; i++)
 	{
 	    var binding = data.results.bindings[i];
-	    var instance = [SPInstance instanceWithJSON:binding class:_class];
+	    var instance = (_class) ?
+                [SPInstance instanceWithJSON:binding class:_class] :
+                [SPInstance instanceWithJSON:binding endPoint:[self endPoint]]; // add endpoit
 
 	    // Check if we already have an instance of this resource
 	    // This might occur if a property cardinality is > 1
