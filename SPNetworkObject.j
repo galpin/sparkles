@@ -37,6 +37,7 @@ SPNetworkObjectConnectionTagDefault = 1;
     CPString _didLoadNotificationName @accessors(property=didLoadNotificationName);
     SPEndPoint _endPoint @accessors(property=endPoint);
     CPDictionary _userInfo;
+    BOOL _isLoaded;
 }
 
 /*!
@@ -135,8 +136,10 @@ SPNetworkObjectConnectionTagDefault = 1;
 */
 - (void)loadIfNeeded
 {
-    // TODO implement a caching/timing mechanism.
-    [self executeQuery:[self buildQuery] tag:SPNetworkObjectConnectionTagDefault];
+    if(!_isLoaded)
+        [self executeQuery:[self buildQuery] tag:SPNetworkObjectConnectionTagDefault];
+    else
+        [self didLoad:SPNetworkObjectConnectionTagDefault];
 }
 
 /*!
@@ -155,6 +158,7 @@ SPNetworkObjectConnectionTagDefault = 1;
 - (void)didLoad:(int)aTag
 {
     [self postNotification:_didLoadNotificationName];
+    _isLoaded = YES;
 }
 
 @end
